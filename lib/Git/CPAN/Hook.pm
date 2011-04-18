@@ -33,7 +33,7 @@ sub import {
 
     # always export everything
     no strict 'refs';
-    *{"$pkg\::$_"} = \&$_ for qw( install );
+    *{"$pkg\::$_"} = \&$_ for qw( install uninstall );
 }
 
 sub install {
@@ -46,6 +46,25 @@ sub install {
     @{ $CPAN::Config->{__REPO__} }
         = grep { defined && length && !$seen{$_}++ }
         @{ $CPAN::Config->{__REPO__} }, $path;
+    CPAN::HandleConfig->commit();
+}
+
+sub uninstall {
+    my ($path) = @_;
+
+    CPAN::HandleConfig->load();
+
+    # just uninstall the given path
+    if ( defined $path ) {
+        @{ $CPAN::Config->{__REPO__} }
+            = grep { $_ != $path } @{ $CPAN::Config->{__REPO__} };
+    }
+
+    # uninstall everything
+    else {
+        delete $CPAN::Config->{$_} for @keys;
+    }
+
     CPAN::HandleConfig->commit();
 }
 
@@ -75,3 +94,4 @@ sub _neatvalue {
 }
 
 1;
+
