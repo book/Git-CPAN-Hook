@@ -97,7 +97,7 @@ sub _install {
 sub _neatvalue {
     my $nv = $original{neatvalue}->(@_);
     return $nv =~ /^CODE/
-        ? 'do { $CPAN::Config->{__} = 1; require Git::CPAN::Hook; sub { } }'
+        ? 'do { require Git::CPAN::Hook; sub { } }'
         : $nv;
 }
 
