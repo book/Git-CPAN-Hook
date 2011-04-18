@@ -79,6 +79,14 @@ sub _install {
 
     # do something
     if ( !$dist->{install}{FAILED} ) {
+        for my $repo ( @{ $CPAN::Config->{__REPO__} } ) {
+            my $r = Git::Repository->new( work_tree => $repo );
+            $r->run( add => '.' );
+            if ( $r->run( status => '--porcelain' ) ) {
+                $r->run( commit => -m => $dist->{ID} );
+                print "# committed $dist->{ID} to $r->{work_tree}\n",;
+            }
+        }
     }
 
     # return what's expected
