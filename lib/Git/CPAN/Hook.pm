@@ -5,9 +5,9 @@ use warnings;
 use CPAN ();
 use Git::Repository;
 
-my %original;
 
 # the list of CPAN.pm methods we will replace
+my %cpan;
 my @hooks = (
     [ 'CPAN::Distribution::install'   => \&_install ],
     [ 'CPAN::HandleConfig::neatvalue' => \&_neatvalue ],
@@ -29,7 +29,7 @@ sub _replace {
     my $name = ( split /::/, $fullname )[-1];
     no strict 'refs';
     no warnings 'redefine';
-    $original{$name} = \&{$fullname};
+    $cpan{$name} = \&{$fullname};
     *$fullname = $meth;
 }
 
@@ -87,7 +87,7 @@ sub uninstall {
 # commit after a successful install
 sub _install {
     my $dist = $_[0];
-    my @rv   = $original{install}->(@_);
+    my @rv   = $cpan{install}->(@_);
 
     # do something after a successful install
     if ( !$dist->{install}{FAILED} ) {
@@ -109,7 +109,7 @@ sub _install {
 
 # make sure we always get loaded
 sub _neatvalue {
-    my $nv = $original{neatvalue}->(@_);
+    my $nv = $cpan{neatvalue}->(@_);
 
     # CPAN's neatvalue just stringifies coderefs, which we then replace
     # with some code to hook us back in CPAN for next time
