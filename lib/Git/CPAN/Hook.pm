@@ -5,6 +5,7 @@ use warnings;
 use CPAN ();
 use Git::Repository;
 
+our $VERSION = '0.01';
 
 # the list of CPAN.pm methods we will replace
 my %cpan;
@@ -119,4 +120,141 @@ sub _neatvalue {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Git::CPAN::Hook - Commit each install done by CPAN.pm in a Git repository
+
+=head1 SYNOPSIS
+
+    # put your local::lib under Git control
+    $ cd ~/perl5
+    $ git init
+
+    # ignore some files
+    $ perl -le 'print for qw( .packlist perllocal.pod )' > .gitignore
+    $ git add .
+    $ git commit -m "initial commit"
+    [master (root-commit) a2bf011] initial commit
+     2 files changed, 3 insertions(+), 0 deletions(-)
+     create mode 100644 .gitignore
+     create mode 100644 .modulebuildrc
+
+    # install the hooks in CPAN.pm
+    $ perl -MGit::CPAN::Hook -e install ~/perl5
+
+    # use CPAN.pm / cpan as usual
+    # every install will create a commit in the current branch
+
+    # uninstall the hooks and clean up CPAN's config
+    $ perl -MGit::CPAN::Hook -e uninstall
+
+=head1 DESCRIPTION
+
+C<Git::CPAN::Hook> enhance the CPAN.pm module installer with
+Git awareness. Once the hooks are installed in CPAN.pm's configuration,
+each and every module installation will result in a commit being done
+in the installation directory/repository.
+
+This module is a proof of concept.
+
+=head1 AUTHOR
+
+Philippe Bruhat (BooK), C<< <book at cpan.org> >>
+
+=head1 HISTORY AND ACKNOWLEDGEMENTS
+
+The initial idea for this module comes from a conversation
+between Andy Armstrong, Tatsuhiko Miyagawa, brian d foy and myself
+(each having his own goal in mind) at the Perl QA Hackathon 2010 in Vienna.
+
+My own idea was that it would be neat to install/uninstall distributions
+using Git to store the files, so that I could later develop some tools
+to try all kinds of crazy combinations of modules versions and installations.
+I already saw myself bisecting on a branch with all versions of a given
+dependency...
+
+To do that and more, I needed a module to control Git from within Perl.
+So I got distracted into writing C<Git::Repository>.
+
+At the Perl QA Hackathon 2011 in Amsterdam, the discussion came up again
+with only Andy Armstrong and myself, this time. He gently motivated me
+into "just doing it", and after a day of experimenting, I was able to
+force C<CPAN.pm> to create a commit after each individual installation.
+
+=head1 TODO
+
+ Here are a number of items on my list:
+
+=over 4
+
+=item
+
+Make it possible for other CPAN installers that have the ability to use
+hooks to use Git::CPAN::Hook.
+
+=item
+
+Some command-line tool for easy manipulation of installed distributions.
+
+=item
+
+It would be great to say: "go forth on BackPAN and install all versions
+of distribution XYZ, with all its dependencies, and make me a branch
+with all these, so that I can bisect my own module to find which is the
+oldest version that works with it".
+
+Or something like that.
+
+=back
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-git-cpan-hook at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=GIT-CPAN-Hook>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Git::CPAN::Hook
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Git-CPAN-Hook>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Git-CPAN-Hook>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Git-CPAN-Hook>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Git-CPAN-Hook/>
+
+=back
+
+=head1 COPYRIGHT
+
+Copyright 2011 Philippe Bruhat (BooK).
+
+=head1 LICENSE
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
+=cut
 
