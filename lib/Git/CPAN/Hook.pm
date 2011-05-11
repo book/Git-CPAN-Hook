@@ -6,17 +6,23 @@ use CPAN ();
 use Git::Repository;
 
 my %original;
+
+# the list of CPAN.pm methods we will replace
 my @hooks = (
     [ 'CPAN::Distribution::install'   => \&_install ],
     [ 'CPAN::HandleConfig::neatvalue' => \&_neatvalue ],
 );
 my @keys = qw( __HOOK__ __REPO__ );
 
-# hook into install
+# actually replace the code in CPAN.pm
 _replace(@$_) for @hooks;
 
-# install our keys in the config
+# install our keys in CPAN.pm's config
 $CPAN::HandleConfig::keys{$_} = undef for @keys;
+
+#
+# some private utilities
+#
 
 sub _replace {
     my ( $fullname, $meth ) = @_;
@@ -36,8 +42,14 @@ sub import {
     *{"$pkg\::$_"} = \&$_ for qw( install uninstall );
 }
 
+#
+# exported methods
+#
+
 sub install {
     my ($path) = @_ ? @_ : @ARGV;
+
+    # will die if not a Git repository
     my $r = Git::Repository->new( work_tree => $path );
 
     CPAN::HandleConfig->load();
@@ -69,7 +81,7 @@ sub uninstall {
 }
 
 #
-# our replacements for some CPAN methods
+# our replacements for some CPAN.pm methods
 #
 
 # commit after a successful install
@@ -77,10 +89,12 @@ sub _install {
     my $dist = $_[0];
     my @rv   = $original{install}->(@_);
 
-    # do something
+    # do something after a successful install
     if ( !$dist->{install}{FAILED} ) {
         for my $repo ( @{ $CPAN::Config->{__REPO__} } ) {
             my $r = Git::Repository->new( work_tree => $repo );
+
+            # commit step
             $r->run( add => '.' );
             if ( $r->run( status => '--porcelain' ) ) {
                 $r->run( commit => -m => $dist->{ID} );
@@ -96,6 +110,9 @@ sub _install {
 # make sure we always get loaded
 sub _neatvalue {
     my $nv = $original{neatvalue}->(@_);
+
+    # CPAN's neatvalue just stringifies coderefs, which we then replace
+    # with some code to hook us back in CPAN for next time
     return $nv =~ /^CODE/
         ? 'do { require Git::CPAN::Hook; sub { } }'
         : $nv;
