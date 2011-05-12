@@ -13,7 +13,7 @@ my @hooks = (
     [ 'CPAN::Distribution::install'   => \&_install ],
     [ 'CPAN::HandleConfig::neatvalue' => \&_neatvalue ],
 );
-my @keys = qw( __HOOK__ __REPO__ );
+my @keys = qw( __HOOK__ );
 
 # actually replace the code in CPAN.pm
 _replace(@$_) for @hooks;
@@ -48,36 +48,14 @@ sub import {
 #
 
 sub install {
-    my ($path) = @_ ? @_ : @ARGV;
-
-    # will die if not a Git repository
-    my $r = Git::Repository->new( work_tree => $path );
-
     CPAN::HandleConfig->load();
     $CPAN::Config->{__HOOK__} = sub { };
-    my %seen;
-    @{ $CPAN::Config->{__REPO__} }
-        = grep { defined && length && !$seen{$_}++ }
-        @{ $CPAN::Config->{__REPO__} }, $path;
     CPAN::HandleConfig->commit();
 }
 
 sub uninstall {
-    my ($path) = @_;
-
     CPAN::HandleConfig->load();
-
-    # just uninstall the given path
-    if ( defined $path ) {
-        @{ $CPAN::Config->{__REPO__} }
-            = grep { $_ != $path } @{ $CPAN::Config->{__REPO__} };
-    }
-
-    # uninstall everything
-    else {
-        delete $CPAN::Config->{$_} for @keys;
-    }
-
+    delete $CPAN::Config->{$_} for @keys;
     CPAN::HandleConfig->commit();
 }
 
@@ -90,10 +68,13 @@ sub _install {
     my $dist = $_[0];
     my @rv   = $cpan{install}->(@_);
 
-    # do something after a successful install
+    # do something only after a successful install
     if ( !$dist->{install}{FAILED} ) {
-        for my $repo ( @{ $CPAN::Config->{__REPO__} } ) {
-            my $r = Git::Repository->new( work_tree => $repo );
+
+        # assume distributions are always installed somewhere in @INC
+        for my $inc (@INC) {
+            my $r = eval { Git::Repository->new( work_tree => $inc ); };
+            next if !$r;    # not a Git repository
 
             # commit step
             $r->run( add => '.' );
@@ -143,7 +124,7 @@ Git::CPAN::Hook - Commit each install done by CPAN.pm in a Git repository
      create mode 100644 .modulebuildrc
 
     # install the hooks in CPAN.pm
-    $ perl -MGit::CPAN::Hook -e install ~/perl5
+    $ perl -MGit::CPAN::Hook -e install
 
     # use CPAN.pm / cpan as usual
     # every install will create a commit in the current branch
