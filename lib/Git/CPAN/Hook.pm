@@ -72,7 +72,7 @@ sub _install {
     if ( !$dist->{install}{FAILED} ) {
 
         # assume distributions are always installed somewhere in @INC
-        for my $inc (@INC) {
+        for my $inc (grep -e, @INC) {
             my $r = eval { Git::Repository->new( work_tree => $inc ); };
             next if !$r;    # not a Git repository
 
