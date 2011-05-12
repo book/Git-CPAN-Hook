@@ -76,6 +76,9 @@ sub _install {
             my $r = eval { Git::Repository->new( work_tree => $inc ); };
             next if !$r;    # not a Git repository
 
+            # do not commit in random directories!
+            next if !-e File::Spec->catfile( $r->git_dir, 'cpan-hook' );
+
             # commit step
             $r->run( add => '.' );
             if ( $r->run( status => '--porcelain' ) ) {
@@ -123,13 +126,16 @@ Git::CPAN::Hook - Commit each install done by CPAN.pm in a Git repository
      create mode 100644 .gitignore
      create mode 100644 .modulebuildrc
 
+    # allow Git::CPAN::Hook to commit in this repository
+    $ echo > .git/cpan-hook
+
     # install the hooks in CPAN.pm
     $ perl -MGit::CPAN::Hook -e install
 
     # use CPAN.pm / cpan as usual
     # every install will create a commit in the current branch
 
-    # uninstall the hooks and clean up CPAN's config
+    # uninstall the hooks from CPAN.pm's config
     $ perl -MGit::CPAN::Hook -e uninstall
 
 =head1 DESCRIPTION
