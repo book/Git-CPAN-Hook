@@ -9,14 +9,14 @@ our $VERSION = '0.01';
 
 # the list of CPAN.pm methods we will replace
 my %cpan;
-my @hooks = (
-    [ 'CPAN::Distribution::install'   => \&_install ],
-    [ 'CPAN::HandleConfig::neatvalue' => \&_neatvalue ],
+my %hook = (
+    'CPAN::Distribution::install'   => \&_install,
+    'CPAN::HandleConfig::neatvalue' => \&_neatvalue,
 );
 my @keys = qw( __HOOK__ );
 
 # actually replace the code in CPAN.pm
-_replace(@$_) for @hooks;
+_replace( $_ => $hook{$_} ) for keys %hook;
 
 # install our keys in CPAN.pm's config
 $CPAN::HandleConfig::keys{$_} = undef for @keys;
