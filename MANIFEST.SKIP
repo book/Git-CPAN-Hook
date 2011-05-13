@@ -1,0 +1,12 @@
+^.git
+\.swp$
+\.SKIP$
+\.bak$
+\.old$
+\.log$
+~$
+TODO
+^Makefile$
+Git-CPAN-Hook-*
+cover_db
+blib
