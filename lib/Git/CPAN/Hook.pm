@@ -77,7 +77,7 @@ sub _install {
             next if !$r;    # not a Git repository
 
             # do not commit in random directories!
-            next if !-e File::Spec->catfile( $r->git_dir, 'cpan-hook' );
+            next if $r->run(qw( config --bool cpan-hook.active )) ne 'true';
 
             # commit step
             $r->run( add => '.' );
