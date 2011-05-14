@@ -70,22 +70,7 @@ sub _install {
 
     # do something only after a successful install
     if ( !$dist->{install}{FAILED} ) {
-
-        # assume distributions are always installed somewhere in @INC
-        for my $inc (grep -e, @INC) {
-            my $r = eval { Git::Repository->new( work_tree => $inc ); };
-            next if !$r;    # not a Git repository
-
-            # do not commit in random directories!
-            next if $r->run(qw( config --bool cpan-hook.active )) ne 'true';
-
-            # commit step
-            $r->run( add => '.' );
-            if ( $r->run( status => '--porcelain' ) ) {
-                $r->run( commit => -m => $dist->{ID} );
-                print "# committed $dist->{ID} to $r->{work_tree}\n",;
-            }
-        }
+        __PACKAGE__->commit( $dist->{ID} );
     }
 
     # return what's expected
@@ -103,6 +88,28 @@ sub _neatvalue {
         : $nv;
 }
 
+#
+# core methods, available to all CPAN clients
+#
+sub commit {
+    my ( $class, $dist ) = @_;
+
+    # assume distributions are always installed somewhere in @INC
+    for my $inc ( grep -e, @INC ) {
+        my $r = eval { Git::Repository->new( work_tree => $inc ); };
+        next if !$r;    # not a Git repository
+
+        # do not commit in random directories!
+        next if $r->run(qw( config --bool cpan-hook.active )) ne 'true';
+
+        # commit step
+        $r->run( add => '.' );
+        if ( $r->run( status => '--porcelain' ) ) {
+            $r->run( commit => -m => $dist );
+            print "# committed $dist to $r->{work_tree}\n";
+        }
+    }
+}
 1;
 
 __END__
