@@ -12,5 +12,10 @@ use_ok($_)
     for reverse sort map { s!/!::!g; s/\.pm$//; s/^blib::lib:://; $_ }
     @modules;
 
-diag("Tested Git::CPAN::Hook $Git::CPAN::Hook::VERSION, Perl $], $^X" );
+diag("Tested Git::CPAN::Hook $Git::CPAN::Hook::VERSION, Perl $], $^X");
 
+no strict 'refs';
+diag(qq{Loaded $_ ${"$_\::VERSION"}}) for qw(
+    CPAN
+    Git::Repository
+);
