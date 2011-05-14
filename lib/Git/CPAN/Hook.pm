@@ -140,10 +140,10 @@ Git::CPAN::Hook - Commit each install done by CPAN.pm in a Git repository
 
 =head1 DESCRIPTION
 
-C<Git::CPAN::Hook> enhance the CPAN.pm module installer with
-Git awareness. Once the hooks are installed in CPAN.pm's configuration,
-each and every module installation will result in a commit being done
-in the installation directory/repository.
+C<Git::CPAN::Hook> adds Git awareness to the CPAN.pm module installer.
+Once the hooks are installed in CPAN.pm's configuration, each and every
+module installation will result in a commit being done in the installation
+directory/repository.
 
 This module is a proof of concept.
 
