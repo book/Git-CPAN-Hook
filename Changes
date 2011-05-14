@@ -1,0 +1,8 @@
+Revision history for Git-CPAN-Hook
+
+0.01 2011-05-14
+        [FEATURES]
+        - proof-of-concept for putting your CPAN install under git control
+        - only works with CPAN.pm
+        - created during the Perl QA Hackathon 2011
+
