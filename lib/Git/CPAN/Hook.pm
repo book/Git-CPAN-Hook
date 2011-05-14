@@ -147,6 +147,19 @@ in the installation directory/repository.
 
 This module is a proof of concept.
 
+Then I want to experiment with a repository of installed stuff, especially
+several versions of the same distribution. And then start doing fancy
+things like uninstalling a single distribution, testing my modules against
+different branches (each test environment only a 'git checkout' away!),
+creating a full install from scratch by applying "install patches", etc.
+
+If this proves useful in any way, it shouldn't be too hard to port to
+CPAN clients that support hooks and plugins. It might be a little more
+difficult to use the I<terminate and stay resident> approach I used
+on CPAN.pm on other clients, as they probably have a san^Hfer configuration
+file format.
+
+
 =head1 AUTHOR
 
 Philippe Bruhat (BooK), C<< <book at cpan.org> >>
@@ -173,7 +186,7 @@ force C<CPAN.pm> to create a commit after each individual installation.
 
 =head1 TODO
 
- Here are a number of items on my list:
+Here are some of the items on my list:
 
 =over 4
 
@@ -195,7 +208,14 @@ oldest version that works with it".
 
 Or something like that.
 
+=item
+
+Turn any installed distribution into a tagged parentless commit that
+can be simply "applied" onto any branch (i.e. find a way to create a
+minimal C<tree> object for it).
+
 =back
+
 
 =head1 BUGS
 
