@@ -127,7 +127,7 @@ Git::CPAN::Hook - Commit each install done by CPAN.pm in a Git repository
      create mode 100644 .modulebuildrc
 
     # allow Git::CPAN::Hook to commit in this repository
-    $ echo > .git/cpan-hook
+    $ git config cpan-hook.active true
 
     # install the hooks in CPAN.pm
     $ perl -MGit::CPAN::Hook -e install
