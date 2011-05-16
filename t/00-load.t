@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use File::Find;
+use CPAN ();
 
 my @modules;
 find( sub { push @modules, $File::Find::name if /\.pm$/ }, 'blib/lib' );
