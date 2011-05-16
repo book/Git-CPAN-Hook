@@ -2,7 +2,6 @@ package Git::CPAN::Hook;
 
 use strict;
 use warnings;
-use CPAN ();
 use Git::Repository;
 
 our $VERSION = '0.01';
@@ -15,11 +14,15 @@ my %hook = (
 );
 my @keys = qw( __HOOK__ );
 
-# actually replace the code in CPAN.pm
-_replace( $_ => $hook{$_} ) for keys %hook;
+# if we were called from within CPAN.pm's configuration
+if ( $INC{'CPAN.pm'} ) {
 
-# install our keys in CPAN.pm's config
-$CPAN::HandleConfig::keys{$_} = undef for @keys;
+    # actually replace the code in CPAN.pm
+    _replace( $_ => $hook{$_} ) for keys %hook;
+
+    # install our keys in CPAN.pm's config
+    $CPAN::HandleConfig::keys{$_} = undef for @keys;
+}
 
 #
 # some private utilities
@@ -48,12 +51,14 @@ sub import {
 #
 
 sub install {
+    require CPAN;
     CPAN::HandleConfig->load();
     $CPAN::Config->{__HOOK__} = sub { };
     CPAN::HandleConfig->commit();
 }
 
 sub uninstall {
+    require CPAN;
     CPAN::HandleConfig->load();
     delete $CPAN::Config->{$_} for @keys;
     CPAN::HandleConfig->commit();
