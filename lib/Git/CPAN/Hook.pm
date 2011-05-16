@@ -167,6 +167,12 @@ on CPAN.pm on other clients, as they probably have a san^Hfer configuration
 file format.
 
 
+=head1 INTEGRATION WITH CPAN CLIENTS
+
+C<Git::CPAN::Hook> currently only explicitely supports C<CPAN.pm>.
+It shouldn't be too hard to integrate with any CPAN client that supports
+plugins.
+
 =head1 METHODS
 
 The following methods are available to write plugins/wrappers/hooks for
