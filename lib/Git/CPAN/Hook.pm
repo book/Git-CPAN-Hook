@@ -167,6 +167,24 @@ on CPAN.pm on other clients, as they probably have a san^Hfer configuration
 file format.
 
 
+=head1 METHODS
+
+The following methods are available to write plugins/wrappers/hooks for
+your CPAN client.
+
+=head2 commit( $dist )
+
+Browse all directories in C<@INC>, looking for an "active" repository
+(i.e. with the Git configuration C<cpan-hook.active> item set to
+C<true>), with local changes, and commit them with C<$dist> as the
+log message. C<$dist> is expected to be the full distribution name,
+e.g. C<B/BO/BOOK/Git-CPAN-Hook-0.02.tar.gz>.
+
+This method is meant to be called right after the installation of an
+individual distribution, so that newly added/modified files will be
+committed to the repository.
+
+
 =head1 AUTHOR
 
 Philippe Bruhat (BooK), C<< <book at cpan.org> >>
