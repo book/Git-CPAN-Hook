@@ -171,12 +171,18 @@ Once the hooks are installed in CPAN.pm's configuration, each and every
 module installation will result in a commit being done in the installation
 directory/repository.
 
+All the setup you need is described in the L<SYNOPSIS>. Read further
+if you are interested in the gory details.
+
+
+=head2 Rationale
+
 This module is a proof of concept.
 
 Then I want to experiment with a repository of installed stuff, especially
 several versions of the same distribution. And then start doing fancy
 things like uninstalling a single distribution, testing my modules against
-different branches (each test environment only a 'git checkout' away!),
+different branches (each test environment is only a "C<git checkout>" away!),
 creating a full install from scratch by applying "install patches", etc.
 
 If this proves useful in any way, it shouldn't be too hard to port to
@@ -186,7 +192,57 @@ on CPAN.pm on other clients, as they probably have a san^Hfer configuration
 file format.
 
 
-=head1 INTEGRATION WITH CPAN CLIENTS
+=head2 Configuration
+
+C<Git::Repository::Hook> is called by your CPAN client after each
+installation, to perform a commit in the installation directory.
+
+Because C<Git::CPAN::Hook> doesn't know I<a priori> where your CPAN
+client has installed the files, it processes C<@INC> looking for Git
+repositories. To avoid unexpected commits in development repositories,
+your CPAN repository must have been I<activated>.
+
+This is done by setting the following configuration in your repository:
+
+    [cpan-hook]
+        active = true
+
+For simplicity, C<Git::CPAN::Hook> should ignore F<.packlist> files,
+as well as F<perllocal.pod>.
+
+    $ perl -le 'print for qw( .packlist perllocal.pod )' >> .gitignore
+
+The whole point of having your CPAN installation under Git control is
+to have multiple branches. They should all start with the basic, empty
+directory (basically, containing only the F<.gitignore> file). This
+initial commit will be tagged C<empty>.
+
+This is a lot of setup, so there is a one line shortcut (assuming the
+directory you want to track is F<~/perl5>:
+
+    $ perl -MGit::CPAN::Hook -e init ~/perl5
+
+
+=head2 Hooking C<Git::CPAN::Hook> in C<CPAN.pm>
+
+Because C<CPAN.pm> is ubiquitous, it was the initial target client for
+C<Git::CPAN::Hook>. Because it doesn't support hooks, hook support had
+to be hacked in.
+
+This is done by adding some code to activate the hooks in the
+configuration file of C<CPAN.pm>, which happens to be a Perl script
+that is C<eval>'ed. C<;-)>
+
+Again, there is a shortcut to install the hook:
+
+    $ perl -MGit::CPAN::Hook -e install
+
+and to uninstall it:
+
+    $ perl -MGit::CPAN::Hook -e uninstall
+
+
+=head1 INTEGRATION WITH OTHER CPAN CLIENTS
 
 C<Git::CPAN::Hook> currently only explicitely supports C<CPAN.pm>.
 It shouldn't be too hard to integrate with any CPAN client that supports
