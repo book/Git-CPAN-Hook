@@ -43,11 +43,37 @@ sub import {
 
     # always export everything
     no strict 'refs';
-    *{"$pkg\::$_"} = \&$_ for qw( install uninstall );
+    *{"$pkg\::$_"} = \&$_ for qw( install init uninstall );
 }
 
 #
-# exported methods
+# exported methods for repository setup
+#
+
+sub init {
+    my ($path) = @_ ? @_ : @ARGV;
+
+    # make this directory a Git repository
+    Git::Repository->run( init => { cwd => $path } );
+    my $r = Git::Repository->new( work_tree => $path );
+
+    # activate it for Git::CPAN::Hook
+    $r->run( qw( config cpan-hook.active true ) );
+
+    # setup ignore list
+    my $ignore = File::Spec->catfile( $path, '.gitignore' );
+    open my $fh, '>>', $ignore or die "Can't open $ignore for appending: $!";
+    print $fh "$_\n" for qw( .packlist perllocal.pod );
+    close $fh;
+    $r->run( add => $ignore );
+    $r->commit( commit => '-m', '.gitignore' );
+
+    # tag as the empty root commit
+    $r->run( tag => 'empty', '-m', 'empty CPAN install, configured' );
+}
+
+#
+# exported methods for CPAN.pm hijacking
 #
 
 sub install {
@@ -115,6 +141,7 @@ sub commit {
         }
     }
 }
+
 1;
 
 __END__
@@ -125,24 +152,11 @@ Git::CPAN::Hook - Commit each install done by CPAN.pm in a Git repository
 
 =head1 SYNOPSIS
 
-    # put your local::lib under Git control
-    $ cd ~/perl5
-    $ git init
-
-    # ignore some files
-    $ perl -le 'print for qw( .packlist perllocal.pod )' > .gitignore
-    $ git add .
-    $ git commit -m "initial commit"
-    [master (root-commit) a2bf011] initial commit
-     2 files changed, 3 insertions(+), 0 deletions(-)
-     create mode 100644 .gitignore
-     create mode 100644 .modulebuildrc
-
-    # allow Git::CPAN::Hook to commit in this repository
-    $ git config cpan-hook.active true
-
     # install the hooks in CPAN.pm
     $ perl -MGit::CPAN::Hook -e install
+
+    # put your local::lib under Git control
+    $ perl -MGit::CPAN::Hook -e init ~/perl5
 
     # use CPAN.pm / cpan as usual
     # every install will create a commit in the current branch
