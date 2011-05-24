@@ -66,7 +66,7 @@ sub init {
     print $fh "$_\n" for qw( .packlist perllocal.pod );
     close $fh;
     $r->run( add => $ignore );
-    $r->commit( commit => '-m', '.gitignore' );
+    $r->run( commit => '-m', 'Basic files in an empty CPAN directory' );
 
     # tag as the empty root commit
     $r->run( tag => 'empty', '-m', 'empty CPAN install, configured' );
