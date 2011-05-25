@@ -60,6 +60,11 @@ sub init {
     # activate it for Git::CPAN::Hook
     $r->run( qw( config cpan-hook.active true ) );
 
+    # create an initial commit if needed (e.g. for local::lib)
+    $r->run( add => '.' );
+    $r->run( commit => -m => 'Initial commit' )
+        if $r->run( status => '--porcelain' );
+
     # setup ignore list
     my $ignore = File::Spec->catfile( $path, '.gitignore' );
     open my $fh, '>>', $ignore or die "Can't open $ignore for appending: $!";
