@@ -16,7 +16,10 @@ use_ok($_)
 diag("Tested Git::CPAN::Hook $Git::CPAN::Hook::VERSION, Perl $], $^X");
 
 no strict 'refs';
-diag(qq{Loaded $_ ${"$_\::VERSION"}}) for qw(
+diag(qq{$_ version ${"$_\::VERSION"}}) for qw(
     CPAN
     Git::Repository
+    System::Command
 );
+diag Git::Repository->run("version");
+
