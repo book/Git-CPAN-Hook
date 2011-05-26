@@ -65,3 +65,15 @@ close $fh;
 init($dir);
 check_repo( $dir, 2 );
 
+# the repository may exist and have some commits already
+BEGIN { $tests += 5 }
+my $r = test_repository;
+$dir = $r->work_tree;
+open $fh, '>', File::Spec->catfile( $dir, 'TODO' );
+print $fh "TODO List\n";
+close $fh;
+$r->run( commit => -m => "a TODO list" );
+
+init($dir);
+check_repo( $dir, 2 );
+
