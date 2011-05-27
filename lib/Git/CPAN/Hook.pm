@@ -190,6 +190,30 @@ things like uninstalling a single distribution, testing my modules against
 different branches (each test environment is only a "C<git checkout>" away!),
 creating a full install from scratch by applying "install patches", etc.
 
+There are two parts to maintaining a CPAN installation as a Git repository:
+
+=over 4
+
+=item
+
+First, one needs to generate file sets from each newly installation.
+
+The first step to that is done by C<commit>. However, a Git commit is
+attached to the full tree of files, not just those there were just
+installed. Some extra work is needed.
+
+=item
+
+Once a distribution can be isolated in the repository, one needs to be
+able to perform all the operations that allow the addition or removal
+of already installed distribution, the creation of new branches with a
+set of individual installs, etc.
+
+At some point in the future, I plan to ship a command-line tool to
+help managing such a CPAN repository.
+
+=back
+
 If this proves useful in any way, it shouldn't be too hard to port to
 CPAN clients that support hooks and plugins. It might be a little more
 difficult to use the I<terminate and stay resident> approach I used
