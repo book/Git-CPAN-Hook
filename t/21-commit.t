@@ -8,7 +8,7 @@ use File::Spec;
 use File::Basename;
 use Git::CPAN::Hook;
 
-has_git('1.5.0');    # git init
+has_git('1.5.1');
 
 # a simple file installer
 sub install_file {
