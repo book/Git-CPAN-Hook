@@ -81,7 +81,9 @@ sub init {
     open my $fh, '>>', $ignore or die "Can't open $ignore for appending: $!";
     print $fh "$_\n" for qw( .packlist perllocal.pod );
     close $fh;
-    $r->run( add => $ignore );
+
+    # git add won't accept an absolute path before 1.5.5
+    $r->run( add => '.gitignore' );
     $r->run( commit => '-m', 'Basic files in an empty CPAN directory' );
 
     # tag as the empty root commit
