@@ -37,6 +37,19 @@ sub _replace {
     *$fullname = $meth;
 }
 
+sub _commit_all {
+    my ($r, @args) = @_;
+
+    # git add . fails on an empty repository for git between 1.5.3 and 1.6.3.2
+    return if ! eval { $r->run( add => '.' ); 1; };
+
+    # git status --porcelain exists only since git 1.7.0
+    $r->run( commit => @args )
+        if $r->version_lt('1.7.0')
+        ? $r->run('status') !~ /^nothing to commit/m
+        : $r->run( status => '--porcelain' );
+}
+
 sub import {
     my ($class) = @_;
     my $pkg = caller;
@@ -61,11 +74,7 @@ sub init {
     $r->run( qw( config cpan-hook.active true ) );
 
     # create an initial commit if needed (e.g. for local::lib)
-    $r->run( add => '.' );
-    $r->run( commit => -m => 'Initial commit' )
-        if $r->version_lt('1.7.0')
-        ? $r->run('status') !~ /^nothing to commit/m
-        : $r->run( status => '--porcelain' );
+    _commit_all( $r => -m => 'Initial commit' );
 
     # setup ignore list
     my $ignore = File::Spec->catfile( $path, '.gitignore' );
@@ -141,14 +150,7 @@ sub commit {
         next if $r->run(qw( config --bool cpan-hook.active )) ne 'true';
 
         # commit step
-        $r->run( add => '.' );
-        if (  $r->version_lt('1.7.0')
-            ? $r->run('status') !~ /^nothing to commit/m
-            : $r->run( status => '--porcelain' ) )
-        {
-            $r->run( commit => -m => $dist );
-            print "# committed $dist to $r->{work_tree}\n";
-        }
+        _commit_all( $r => -m => $dist );
     }
 }
 
