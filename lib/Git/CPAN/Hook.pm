@@ -63,7 +63,9 @@ sub init {
     # create an initial commit if needed (e.g. for local::lib)
     $r->run( add => '.' );
     $r->run( commit => -m => 'Initial commit' )
-        if $r->run( status => '--porcelain' );
+        if $r->version_lt('1.7.0')
+        ? $r->run('status') !~ /^nothing to commit/m
+        : $r->run( status => '--porcelain' );
 
     # setup ignore list
     my $ignore = File::Spec->catfile( $path, '.gitignore' );
@@ -140,7 +142,10 @@ sub commit {
 
         # commit step
         $r->run( add => '.' );
-        if ( $r->run( status => '--porcelain' ) ) {
+        if (  $r->version_lt('1.7.0')
+            ? $r->run('status') !~ /^nothing to commit/m
+            : $r->run( status => '--porcelain' ) )
+        {
             $r->run( commit => -m => $dist );
             print "# committed $dist to $r->{work_tree}\n";
         }
