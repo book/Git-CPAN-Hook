@@ -87,7 +87,7 @@ sub init {
     $r->run( commit => '-m', 'Basic files in an empty CPAN directory' );
 
     # tag as the empty root commit
-    $r->run( tag => 'empty', '-m', 'empty CPAN install, configured' );
+    $r->run( tag => '-m', 'empty CPAN install, configured', 'empty' );
 }
 
 #
