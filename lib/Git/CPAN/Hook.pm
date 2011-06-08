@@ -15,7 +15,13 @@ my %hook = (
 my @keys = qw( __HOOK__ );
 
 # if we were called from within CPAN.pm's configuration
-if ( $INC{'CPAN.pm'} ) {
+_TSR_CPAN() if $INC{'CPAN.pm'};
+
+#
+# some private utilities
+#
+sub _TSR_CPAN {
+    require CPAN;
 
     # actually replace the code in CPAN.pm
     _replace( $_ => $hook{$_} ) for keys %hook;
@@ -23,10 +29,6 @@ if ( $INC{'CPAN.pm'} ) {
     # install our keys in CPAN.pm's config
     $CPAN::HandleConfig::keys{$_} = undef for @keys;
 }
-
-#
-# some private utilities
-#
 
 sub _replace {
     my ( $fullname, $meth ) = @_;
@@ -95,14 +97,14 @@ sub init {
 #
 
 sub install {
-    require CPAN;
+    _TSR_CPAN;
     CPAN::HandleConfig->load();
     $CPAN::Config->{__HOOK__} = sub { };
     CPAN::HandleConfig->commit();
 }
 
 sub uninstall {
-    require CPAN;
+    _TSR_CPAN;
     CPAN::HandleConfig->load();
     delete $CPAN::Config->{$_} for @keys;
     CPAN::HandleConfig->commit();
