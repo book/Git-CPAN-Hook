@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Git::Repository;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 # the list of CPAN.pm methods we will replace
 my %cpan;

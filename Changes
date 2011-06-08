@@ -1,7 +1,12 @@
 Revision history for Git-CPAN-Hook
 
+0.03 2011-06-09
+        [ENHANCEMENTS]
+        - fix the install and uninstall functions, that didn't work properly
+          in version 0.02
+
 0.02 2011-06-09
-        [FEATURES]
+        [ENHANCEMENTS]
         - new 'init' command, to simplify the initial configuration of
           CPAN repository
         [TESTS]
