@@ -1,5 +1,13 @@
 Revision history for Git-CPAN-Hook
 
+0.02 2011-06-09
+        [FEATURES]
+        - new 'init' command, to simplify the initial configuration of
+          CPAN repository
+        [TESTS]
+        - tests now cover the 'init' command
+        - tested to work with git from version 1.5.0 to 1.7.5.2
+
 0.01 2011-05-14
         [FEATURES]
         - proof-of-concept for putting your CPAN install under git control
