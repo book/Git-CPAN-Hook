@@ -142,6 +142,11 @@ sub commit {
 
         # commit step
         _commit_all( $r => -m => $dist );
+
+        # create a parentless commit with all those changes and tag it
+        my $tree = _tree_from_diff( $r );
+        my $commit = $r->run( 'commit-tree' , $tree, {input => $dist } );
+        $r->run( 'update-ref' => "refs/tags/$dist" => $commit );
     }
 }
 
