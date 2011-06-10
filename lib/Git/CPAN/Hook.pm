@@ -39,19 +39,6 @@ sub _replace {
     *$fullname = $meth;
 }
 
-sub _commit_all {
-    my ($r, @args) = @_;
-
-    # git add . fails on an empty repository for git between 1.5.3 and 1.6.3.2
-    return if ! eval { $r->run( add => '.' ); 1; };
-
-    # git status --porcelain exists only since git 1.7.0
-    $r->run( commit => @args )
-        if $r->version_lt('1.7.0')
-        ? $r->run('status') !~ /^nothing to commit/m
-        : $r->run( status => '--porcelain' );
-}
-
 sub import {
     my ($class) = @_;
     my $pkg = caller;
@@ -161,6 +148,19 @@ sub commit {
 #
 # private methods for git manipulation
 #
+sub _commit_all {
+    my ( $r, @args ) = @_;
+
+    # git add . fails on an empty repository for git between 1.5.3 and 1.6.3.2
+    return if !eval { $r->run( add => '.' ); 1; };
+
+    # git status --porcelain exists only since git 1.7.0
+    $r->run( commit => @args )
+        if $r->version_lt('1.7.0')
+        ? $r->run('status') !~ /^nothing to commit/m
+        : $r->run( status => '--porcelain' );
+}
+
 sub _tree_from_diff {
     my ( $r, @args ) = @_;
     @args = ('HEAD') if !@args;
