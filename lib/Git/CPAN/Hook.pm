@@ -158,6 +158,68 @@ sub commit {
     }
 }
 
+#
+# private methods for git manipulation
+#
+sub _tree_from_diff {
+    my ( $r, @args ) = @_;
+    @args = ('HEAD') if !@args;
+
+    # get the list of files added/modified
+    my @diff = $r->run( 'diff-tree', '-r', '--raw', @args );
+
+    my @tree;
+    while ( my $line = shift @diff ) {
+
+        # skip non-diff lines
+        next if $line !~ /^:/;
+
+        # single : at the beginning, or can't parse
+        die "Don't know how to parse a merge" if $line =~ /^::/;
+
+        # split the line into its components
+        my ( $sperm, $dperm, $sblob, $dblob, $target ) = split / /, $line, 5;
+        my ( $status, $path ) = split /\t/, $target, 2;
+        die "Don't know how to parse status $status" if $status !~ /^[MA]/;
+
+        my @dir = split /\//, $path;
+        my $leaf = pop @dir;
+
+        # update the structure
+        my $t = $tree[@dir] ||= {};
+        $t->{ join '/', @dir }{$leaf} = [ $dperm, blob => $dblob ];
+    }
+
+    my $mktree = $r->command( mktree => '--batch' );
+
+    # now process the structure
+    while ( @tree > 1 ) {
+        my $t = pop @tree;
+        my ( $in, $out ) = ( $mktree->stdin, $mktree->stdout );
+        while ( my ( $dir, $entries ) = each %$t ) {
+
+            # create the corresponding tree object
+            $in->print( map {"@{$entries->{$_}}\t$_\n"} keys %$entries );
+            $in->print("\n");
+            chomp( my $tree = $out->getline );
+
+            # add it to the structure
+            my @dir = split /\//, $dir;
+            my $leaf = pop @dir;
+            $tree[-1]{ join '/', @dir }{$leaf} = [ '040000', tree => $tree ];
+        }
+    }
+
+    # and the final tree is
+    my $entries = $tree[0]{''};
+    $mktree->stdin->print( map {"@{$entries->{$_}}\t$_\n"} keys %$entries );
+    $mktree->stdin->close;
+    chomp( my $tree = $mktree->stdout->getline );
+    $mktree->close;
+
+    return $tree;
+}
+
 1;
 
 __END__
