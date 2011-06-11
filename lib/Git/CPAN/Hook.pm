@@ -107,7 +107,7 @@ sub _install {
     my @rv   = $cpan{install}->(@_);
 
     # do something only after a successful install
-    if ( !$dist->{install}{FAILED} ) {
+    if ( exists $dist->{install} && !$dist->{install}{FAILED} ) {
         __PACKAGE__->commit( $dist->{ID} );
     }
 
