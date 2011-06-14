@@ -2,6 +2,7 @@ package Git::CPAN::Hook;
 
 use strict;
 use warnings;
+use File::Spec;
 use Git::Repository;
 
 our $VERSION = '0.03';
@@ -104,11 +105,12 @@ sub uninstall {
 # commit after a successful install
 sub _install {
     my $dist = $_[0];
+    my $time = time;
     my @rv   = $cpan{install}->(@_);
 
     # do something only after a successful install
     if ( exists $dist->{install} && !$dist->{install}{FAILED} ) {
-        __PACKAGE__->commit( $dist->{ID} );
+        __PACKAGE__->commit( $dist->{ID}, $time );
     }
 
     # return what's expected
@@ -130,7 +132,7 @@ sub _neatvalue {
 # core methods, available to all CPAN clients
 #
 sub commit {
-    my ( $class, $dist ) = @_;
+    my ( $class, $dist, $time ) = @_;
 
     # assume distributions are always installed somewhere in @INC
     for my $inc ( grep -e, @INC ) {
@@ -144,7 +146,7 @@ sub commit {
         _commit_all( $r => -m => $dist );
 
         # create a parentless commit with all those changes and tag it
-        my $tree = _tree_from_diff( $r );
+        my $tree = _tree_modified_since( $r, $time );
         my $commit = $r->run( 'commit-tree' , $tree, {input => $dist } );
         $r->run( 'update-ref' => "refs/tags/$dist" => $commit );
     }
@@ -166,33 +168,43 @@ sub _commit_all {
         : $r->run( status => '--porcelain' );
 }
 
-sub _tree_from_diff {
-    my ( $r, @args ) = @_;
-    @args = ('HEAD') if !@args;
+sub _tree_modified_since {
+    my ( $r, $time ) = @_;
 
-    # get the list of files added/modified
-    my @diff = $r->run( 'diff-tree', '-r', '--raw', @args );
+    # get the list of files modified since $time
+    my %files;
+    my @queue = ( my $base = $r->work_tree );
+    my $git_dir =  File::Spec->abs2rel( $r->git_dir, $base );
+    while (@queue) {
 
+        # @queue contains full path to dirs to test
+        my $dir = shift @queue;
+        opendir my $dh, $dir or die "can't opendir $dir: $!";
+        my @items = map { File::Spec->catfile( $dir, $_ ) }
+            File::Spec->no_upwards( readdir($dh) );
+        closedir $dh;
+
+        # keep files more recent than $time
+        $files{$_} = 1
+            for map { File::Spec->abs2rel( $_, $base ) }
+            grep { -f && (stat)[9] >= $time } @items;
+
+        # queue all dirs
+        push @queue, grep { $_ ne $r->git_dir } grep {-d} @items;
+    }
+
+    # now pick files from git ls-tree
     my @tree;
-    while ( my $line = shift @diff ) {
-
-        # skip non-diff lines
-        next if $line !~ /^:/;
-
-        # single : at the beginning, or can't parse
-        die "Don't know how to parse a merge" if $line =~ /^::/;
-
-        # split the line into its components
-        my ( $sperm, $dperm, $sblob, $dblob, $target ) = split / /, $line, 5;
-        my ( $status, $path ) = split /\t/, $target, 2;
-        die "Don't know how to parse status $status" if $status !~ /^[MA]/;
+    for my $line ( $r->run( 'ls-tree', '-r', 'HEAD' ) ) {
+        my ($perms, $path) = split /\t/, $line, 2;
+        next if !exists $files{$path};
 
         my @dir = split /\//, $path;
         my $leaf = pop @dir;
 
         # update the structure
         my $t = $tree[@dir] ||= {};
-        $t->{ join '/', @dir }{$leaf} = [ $dperm, blob => $dblob ];
+        $t->{ join '/', @dir }{$leaf} = "$perms\t$leaf\n";
     }
 
     my $mktree = $r->command( mktree => '--batch' );
@@ -204,20 +216,19 @@ sub _tree_from_diff {
         while ( my ( $dir, $entries ) = each %$t ) {
 
             # create the corresponding tree object
-            $in->print( map {"@{$entries->{$_}}\t$_\n"} keys %$entries );
-            $in->print("\n");
+            $in->print( values %$entries, "\n" );
             chomp( my $tree = $out->getline );
 
             # add it to the structure
             my @dir = split /\//, $dir;
             my $leaf = pop @dir;
-            $tree[-1]{ join '/', @dir }{$leaf} = [ '040000', tree => $tree ];
+            $tree[-1]{ join '/', @dir }{$leaf} = "040000 tree $tree\t$leaf\n";
         }
     }
 
     # and the final tree is
     my $entries = $tree[0]{''};
-    $mktree->stdin->print( map {"@{$entries->{$_}}\t$_\n"} keys %$entries );
+    $mktree->stdin->print( values %$entries );
     $mktree->stdin->close;
     chomp( my $tree = $mktree->stdout->getline );
     $mktree->close;
