@@ -135,14 +135,7 @@ sub commit {
     my ( $class, $dist, $time ) = @_;
 
     # assume distributions are always installed somewhere in @INC
-    my %seen;
-    for my $inc ( grep -e, @INC ) {
-        my $r = eval { Git::Repository->new( work_tree => $inc ); };
-        next if !$r;                       # not a Git repository
-        next if $seen{ $r->git_dir }++;    # already processed this one
-
-        # do not commit in random directories!
-        next if $r->run(qw( config --bool cpan-hook.active )) ne 'true';
+    for my $r ( _INC_repos() ) {
 
         # commit step
         _commit_all( $r => -m => $dist );
@@ -236,6 +229,19 @@ sub _tree_modified_since {
     $mktree->close;
 
     return $tree;
+}
+
+sub _INC_repos {
+    my @r;
+    my %seen;
+    for my $inc ( grep -e, @INC ) {
+        my $r = eval { Git::Repository->new( work_tree => $inc ); };
+        next if !$r;                       # not a Git repository
+        next if $seen{ $r->git_dir }++;    # already found this one
+        next if $r->run(qw( config --bool cpan-hook.active )) ne 'true';
+        push @r, $r;
+    }
+    return @r;
 }
 
 1;
