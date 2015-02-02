@@ -21,5 +21,5 @@ diag(qq{$_ version ${"$_\::VERSION"}}) for qw(
     Git::Repository
     System::Command
 );
-diag Git::Repository->run("version");
 
+diag eval { Git::Repository->run("version") } || "git binary not found";
