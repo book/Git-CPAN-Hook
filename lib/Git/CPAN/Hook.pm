@@ -370,7 +370,7 @@ and to uninstall it:
 
 =head1 INTEGRATION WITH OTHER CPAN CLIENTS
 
-C<Git::CPAN::Hook> currently only explicitely supports C<CPAN.pm>.
+Git::CPAN::Hook currently only explicitely supports L<CPAN>.pm.
 It shouldn't be too hard to integrate with any CPAN client that supports
 plugins.
 
@@ -409,12 +409,12 @@ I already saw myself bisecting on a branch with all versions of a given
 dependency...
 
 To do that and more, I needed a module to control Git from within Perl.
-So I got distracted into writing C<Git::Repository>.
+So I got distracted into writing L<Git::Repository>.
 
 At the Perl QA Hackathon 2011 in Amsterdam, the discussion came up again
 with only Andy Armstrong and myself, this time. He gently motivated me
 into "just doing it", and after a day of experimenting, I was able to
-force C<CPAN.pm> to create a commit after each individual installation.
+force L<CPAN>.pm to create a commit after each individual installation.
 
 =head1 TODO
 
