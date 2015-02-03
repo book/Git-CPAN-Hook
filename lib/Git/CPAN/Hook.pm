@@ -5,8 +5,6 @@ use warnings;
 use File::Spec;
 use Git::Repository;
 
-our $VERSION = '0.03';
-
 # the list of CPAN.pm methods we will replace
 my %cpan;
 my %hook = (
