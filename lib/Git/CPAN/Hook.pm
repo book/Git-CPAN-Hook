@@ -318,7 +318,7 @@ file format.
 
 =head2 Configuration
 
-C<Git::Repository::Hook> is called by your CPAN client after each
+C<Git::CPAN::Hook> is called by your CPAN client after each
 installation, to perform a commit in the installation directory.
 
 Because C<Git::CPAN::Hook> doesn't know I<a priori> where your CPAN
