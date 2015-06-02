@@ -347,14 +347,14 @@ directory you want to track is F<~/perl5>:
     $ perl -MGit::CPAN::Hook -e init ~/perl5
 
 
-=head2 Hooking C<Git::CPAN::Hook> in C<CPAN.pm>
+=head2 Hooking C<Git::CPAN::Hook> in L<CPAN.pm|CPAN>
 
-Because C<CPAN.pm> is ubiquitous, it was the initial target client for
+Because L<CPAN.pm|CPAN> is ubiquitous, it was the initial target client for
 C<Git::CPAN::Hook>. Because it doesn't support hooks, hook support had
 to be hacked in.
 
 This is done by adding some code to activate the hooks in the
-configuration file of C<CPAN.pm>, which happens to be a Perl script
+configuration file of L<CPAN.pm|CPAN>, which happens to be a Perl script
 that is C<eval>'ed. C<;-)>
 
 Again, there is a shortcut to install the hook:
@@ -368,7 +368,7 @@ and to uninstall it:
 
 =head1 INTEGRATION WITH OTHER CPAN CLIENTS
 
-Git::CPAN::Hook currently only explicitely supports L<CPAN>.pm.
+Git::CPAN::Hook currently only explicitely supports L<CPAN.pm|CPAN>.
 It shouldn't be too hard to integrate with any CPAN client that supports
 plugins.
 
@@ -412,7 +412,7 @@ So I got distracted into writing L<Git::Repository>.
 At the Perl QA Hackathon 2011 in Amsterdam, the discussion came up again
 with only Andy Armstrong and myself, this time. He gently motivated me
 into "just doing it", and after a day of experimenting, I was able to
-force L<CPAN>.pm to create a commit after each individual installation.
+force L<CPAN.pm|CPAN> to create a commit after each individual installation.
 
 =head1 TODO
 
