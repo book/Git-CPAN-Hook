@@ -1,14 +1,14 @@
 use strict;
 use warnings;
 use Test::More;
-use Test::Git;
+use Test::Requires::Git;
 use File::Temp qw( tempdir );
 use File::Path;
 use File::Spec;
 use File::Basename;
 use Git::CPAN::Hook;
 
-has_git('1.5.1');
+test_requires_git('1.5.1');
 
 # a simple file installer
 sub install_file {
