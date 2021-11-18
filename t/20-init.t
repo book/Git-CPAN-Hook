@@ -2,10 +2,11 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Git;
+use Test::Requires::Git;
 use File::Temp qw( tempdir );
 use Git::CPAN::Hook;
 
-has_git('1.5.1');
+test_requires_git('1.5.1');
 
 plan tests => my $tests;
 
